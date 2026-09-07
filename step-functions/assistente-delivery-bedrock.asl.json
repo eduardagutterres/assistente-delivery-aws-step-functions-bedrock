@@ -1,0 +1,90 @@
+{
+  "Comment": "Assistente de delivery com Amazon Bedrock",
+  "StartAt": "Invoke Model with first prompt",
+  "States": {
+    "Invoke Model with first prompt": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::bedrock:invokeModel",
+      "Arguments": {
+        "ModelId": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "Body": {
+          "anthropic_version": "bedrock-2023-05-31",
+          "max_tokens": 100,
+          "messages": [
+            {
+              "role": "user",
+              "content": "Você é um assistente de delivery. Pergunte ao cliente, de forma curta, que tipo de refeição ele deseja."
+            }
+          ]
+        }
+      },
+      "Next": "Add first result to conversation history",
+      "Output": "{% $states.result %}"
+    },
+    "Add first result to conversation history": {
+      "Type": "Pass",
+      "Assign": {
+        "conversationHistory": "{% $states.input %}"
+      },
+      "Next": "Invoke Model with second prompt"
+    },
+    "Invoke Model with second prompt": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::bedrock:invokeModel",
+      "Arguments": {
+        "ModelId": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "Body": {
+          "anthropic_version": "bedrock-2023-05-31",
+          "max_tokens": 100,
+          "messages": [
+            {
+              "role": "user",
+              "content": "{% 'Considere este contexto da conversa: ' & $string($conversationHistory) & '. Agora sugira uma refeição adequada de forma curta.' %}"
+            }
+          ]
+        }
+      },
+      "Next": "Add second result to conversation history"
+    },
+    "Add second result to conversation history": {
+      "Type": "Pass",
+      "Assign": {
+        "secondResult": "{% $states.input %}"
+      },
+      "Next": "Check food preferences"
+    },
+    "Check food preferences": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Next": "Invoke personalized recommendation",
+          "Condition": "{% $exists($states.context.Execution.Input.foodPreference) and $states.context.Execution.Input.foodPreference != \"\" %}"
+        }
+      ],
+      "Default": "Default response"
+    },
+    "Default response": {
+      "Type": "Pass",
+      "End": true
+    },
+    "Invoke personalized recommendation": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::bedrock:invokeModel",
+      "Arguments": {
+        "ModelId": "global.anthropic.claude-haiku-4-5-20251001-v1:0",
+        "Body": {
+          "anthropic_version": "bedrock-2023-05-31",
+          "max_tokens": 100,
+          "messages": [
+            {
+              "role": "user",
+              "content": "{% 'Considere a preferência alimentar: ' & $states.context.Execution.Input.foodPreference & '. Com base no contexto anterior, gere uma recomendação curta e adequada.' %}"
+            }
+          ]
+        }
+      },
+      "End": true
+    }
+  },
+  "QueryLanguage": "JSONata"
+}
