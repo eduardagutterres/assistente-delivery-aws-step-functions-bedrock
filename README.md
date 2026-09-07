@@ -177,8 +177,14 @@ A integração com o Amazon Bedrock permite adicionar capacidade de interpretaç
 
 ## Projeto
 
-Desafio prático desenvolvido durante formação da *DIO, utilizando serviços da **Amazon Web Services (AWS)*.
+Desafio prático desenvolvido durante formação da **DIO**, utilizando serviços da **Amazon Web Services (AWS)**.
 
+## Execução bem-sucedida
 
+Foi realizada uma execução real da máquina de estado com o parâmetro `foodPreference` preenchido.
+
+A execução foi concluída com sucesso no AWS Step Functions, validando a integração com o Amazon Bedrock e o caminho de recomendação personalizada.
+
+![Execução concluída com sucesso](docs/evidencias/08-execucao-sucesso.png)
 
 AssistenteDeliveryBedrock
